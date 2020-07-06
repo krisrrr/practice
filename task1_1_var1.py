@@ -4,6 +4,7 @@ from clickhouse_driver import Client
 from random import randint
 
 count_of_nums = 10  # число чисел
+count_of_iters = 10
 
 def table_init(client):     
 	client.execute('CREATE DATABASE practice')
@@ -48,12 +49,12 @@ def main():
 	#print(type(buf[0][0]))
 	j = 2
 
-	while j < 11:														# Цикл итераций, начиная со 2. В цикле: 
+	while j <= count_of_iters:														# Цикл итераций, начиная со 2. В цикле: 
 		sleep(1)														#  обновляется:
 		buf[0] = j														#   - номер итерации
 		buf[1] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")			#   - время итерации
 		for i in range(2, count_of_nums + 2):							#   - каждое число (каждую итерацию оно умножается на 2)
-			buf[i] = buf[i] * 2
+			buf[i] = buf[i] + 2*j + i
 		j += 1
 		put_to_table(client, buf)	# Занесение в базу обновлённого списка
 		print(*buf, '\n', sep=' ')	
