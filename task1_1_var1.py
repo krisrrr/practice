@@ -2,13 +2,19 @@ from time import sleep
 from datetime import datetime
 from clickhouse_driver import Client
 from random import randint
+import subprocess
+from subprocess import Popen
+import sys
+import task1_2_var1
+
 
 count_of_nums = 10  # число чисел
 count_of_iters = 10
 
-def table_init(client):     
-	client.execute('CREATE DATABASE practice')
-	client.execute('CREATE TABLE practice.numbers('
+def table_init(client, names=None):
+	if names == None:     
+		client.execute('CREATE DATABASE practice')
+		client.execute('CREATE TABLE practice.numbers('
 						'id_iter Int32, time_ String, num_1 Int32, '
 						'num_2 Int32, num_3 Int32, '
 						'num_4 Int32, num_5 Int32, '
@@ -16,6 +22,8 @@ def table_init(client):
 						'num_8 Int32, num_9 Int32, '
 						'num_10 Int32)'
 						'ENGINE = MergeTree ORDER BY time_')
+	else:
+		pass
 	k = client.execute('SHOW TABLES IN practice')
 	if k: print('Database and table successfully created')
 
@@ -30,11 +38,30 @@ def put_to_table(client, buf):
 
 def drop_database(client):
 	client.execute('DROP DATABASE IF EXISTS practice')
-
-def main():
+	
+def __main__():
 	client = Client('localhost')  	# Подключение к серверу.
-	buf = []                      	# Создание буфферного списка.
+	buf = []                     	# Создание буфферного списка.
 	drop_database(client)		  	# Удаление базы данных, если она существует, во избежание накопления данных при повторном выполнении программы.
+	global count_of_nums
+	
+	ans0 = input('Select language:\n  1. English\n  2. Russian\n')
+	if ans0 == '2':
+		print('----Добро пожаловать в программу!----')
+		count_of_nums = input('Введите количество переменных -->')
+		 ('Сейчас будет создана база данных с 10 переменными.')
+		ans1 = input('Хотите ввести названия переменных? (д/н) -->') 
+	
+		if ans1 == 'д':
+			names = []
+	
+			for i in range(10):
+				names.append(input('Введите название переменной №%S'%str(i+1)))
+				table_init(client, names)
+	
+		elif ans1 == 'н':
+			table_init(client, names=None)
+	
 	table_init(client)			  	# Создание базы данных и таблицы.
 
 	buf.append(1)														# Добавление номера итерации - 1, потому что первая итерация.
@@ -61,6 +88,10 @@ def main():
 
 	print(client.execute('SELECT * FROM practice.numbers'))
 	#drop_database(client)
+	task1_2_var1.painting()
 
 if __name__ == '__main__':
-	main()
+	__main__()
+
+
+	

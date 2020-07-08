@@ -18,7 +18,7 @@ def get_data(id_, client):
 
 
 def graph(nums):
-	x = range(0, count_of_iters)
+	x = range(1, count_of_iters+1)
 	plt = qt.plot()
 	plt.showGrid(x=True, y=True)
 	plt.addLegend()
@@ -37,7 +37,7 @@ def graph(nums):
 	
 
 
-def main():
+def painting():
 	
 	client = Client('localhost')  	# Подключение к серверу.
 	
