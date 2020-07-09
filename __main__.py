@@ -43,24 +43,6 @@ def __main__():
 	client = Client('localhost')  	# Подключение к серверу.
 	buf = []                     	# Создание буфферного списка.
 	drop_database(client)		  	# Удаление базы данных, если она существует, во избежание накопления данных при повторном выполнении программы.
-	global count_of_nums
-	
-	ans0 = input('Select language:\n  1. English\n  2. Russian\n')
-	if ans0 == '2':
-		print('----Добро пожаловать в программу!----')
-		count_of_nums = input('Введите количество переменных -->')
-		 ('Сейчас будет создана база данных с 10 переменными.')
-		ans1 = input('Хотите ввести названия переменных? (д/н) -->') 
-	
-		if ans1 == 'д':
-			names = []
-	
-			for i in range(10):
-				names.append(input('Введите название переменной №%S'%str(i+1)))
-				table_init(client, names)
-	
-		elif ans1 == 'н':
-			table_init(client, names=None)
 	
 	table_init(client)			  	# Создание базы данных и таблицы.
 
@@ -92,6 +74,3 @@ def __main__():
 
 if __name__ == '__main__':
 	__main__()
-
-
-	
