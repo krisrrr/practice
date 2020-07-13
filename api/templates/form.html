@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Добавить новое число</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+<div id="app">
+    <form>
+        <input type="text" v-model="formInput1">
+        <input type="text" v-model="formInput2">
+        <button @click.prevent="sendData(formInput1, formInput2)">Добавить</button>
+    </form>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            formInput1: "",
+            formInput2: ""
+        },
+        methods: {
+            sendData(name, value){
+                fetch(`http://127.0.0.1:5000/all?name=${name}&value=${value}`)
+            }
+        }
+    })
+</script>
+</body>
+</html>
