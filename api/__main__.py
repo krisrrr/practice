@@ -2,7 +2,6 @@ from time import sleep
 import time
 from datetime import datetime
 from clickhouse_driver import Client
-from clickhouse_driver import connect
 from random import randint
 import subprocess
 from subprocess import Popen
