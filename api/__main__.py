@@ -14,6 +14,7 @@ import threading
 from threading import Thread
 import _thread
 import json
+from multiprocessing import Process
 
 
 check = 0       # переменная для контроля доступа к БД  
@@ -21,7 +22,7 @@ check = 0       # переменная для контроля доступа к
 client = Client('localhost')
 
 app = flask.Flask(__name__)
-app.config["DEBUG"] = True
+#app.config["DEBUG"] = True
 
 values = [0, datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
     randint(1, 10), 
@@ -34,62 +35,62 @@ columns = ['id_iter', 'time_', 'num_1', 'num_2', 'num_3', 'num_4', 'num_5']
 
 
 def table_init(client):
-	client.execute('DROP DATABASE IF EXISTS practice') 
-	client.execute('CREATE DATABASE practice')
-	client.execute('CREATE TABLE practice.numbers('
+	client.execute('DROP TABLE IF EXISTS numbers')
+	client.execute('CREATE TABLE numbers('
 						'id_iter Int32, time_ String, num_1 Int32, '
 						'num_2 Int32, num_3 Int32, '
 						'num_4 Int32, num_5 Int32)'
 						'ENGINE = MergeTree ORDER BY time_')
 
 
-def put_to_table(client, buf, columns):
-    values = str(buf[0]) + """, '""" + str(buf[1]) + """'"""
+def put_to_table(client):
+    
+    global values
+    global columns
+    
+    buf = str(values[0]) + """, '""" + str(values[1]) + """'"""
     names = 'id_iter'
     for i in range(1, len(columns)):
         names += ', ' + columns[i]
-    for i in range(2, len(buf)):
-        values += ', ' + str(buf[i]) 
-    query = 'INSERT INTO practice.numbers ('+names+') VALUES ('+values+')'
-    print(query)
-    client.execute(query)
+    for i in range(2, len(values)):
+        buf += ', ' + str(values[i]) 
+    print()
+    print(names)
+    print(buf)
+    
+    #print(query)
+    client.execute('INSERT INTO numbers ('+names+') VALUES ('+buf+')')
     #k = client.execute('SELECT * FROM practice.numbers')
     #if k: print('Successfully added')
 
 
 def db():
+    #sleep(3)
+    print('global client')
     global client
+    print('global check')
     global check
-    #global api_flow
-    #global values
     table_init(client)
-    put_to_table(client, values, columns)
-
+    print('table_init(client)')
+    put_to_table(client)
+    print('put_to_table()')
     #while True:
     for i in range(10):
+        print()
         check = 1   # доступ к бд открыт
         sleep(1)
         #print(time.time())
         check = 0   # доступ к бд закрыт
-        data = client.execute('SELECT * FROM practice.numbers WHERE id_iter = '+str(i))
+        data = client.execute('SELECT * FROM numbers WHERE id_iter = '+str(i))
+        print('data = ', data)
         values[0] = data[0][0] + 1
         values[1] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
         for i in range(2, len(values)):
-            values[i] += 3 * data[0][0]
-        put_to_table(client, values, columns)
+            values[i] = data[0][i] + 3 * data[0][0]
+        print(values)
+        put_to_table(client)
         #print(time.time())
-
-
-class Db(Thread):
-        
-    def __init__(self):
-        """Инициализация потока"""
-        Thread.__init__(self)
-        self.name = "DB"
-    
-    def run(self):
-        """Запуск потока"""
-        db()
+    print(client.execute('SELECT * FROM numbers ORDER BY id_iter'))
 
 
 @app.route('/', methods=['GET'])
@@ -104,10 +105,10 @@ def home():
 
 
 @app.route('/all', methods=['GET'])
-def show_entries(a):
+def show_entries():
     global client
     global columns
-    data = client.execute('SELECT * FROM practice.numbers ORDER BY time_')
+    data = client.execute('SELECT * FROM numbers ORDER BY id_iter')
     print('Необработанные данные из таблицы:', data)
     entries = []
     buf = []
@@ -151,7 +152,7 @@ def show_entries(a):
 @app.route('/pupka', methods=['GET'])
 def shrek():
     global client
-    data = client.execute('SELECT * FROM practice.numbers ORDER BY time_')
+    data = client.execute('SELECT * FROM numbers ORDER BY time_')
     return str(data)
 
 
@@ -210,8 +211,8 @@ def add_num():
             print(name)
             
             value = query_parameters.get('value')
-            client.execute('ALTER TABLE practice.numbers ADD COLUMN '+ name +' Int32')
-            client.execute('UPDATE practice.numbers SET '+ name +' = '+ str(value) +' WHERE practice.numbers.id_iter = '+id)
+            client.execute('ALTER TABLE numbers ADD COLUMN '+ name +' Int32')
+            client.execute('UPDATE numbers SET '+ name +' = '+ str(value) +' WHERE id_iter = '+id)
             values[name] = int(value)
             break
     
@@ -224,7 +225,10 @@ if __name__ == '__main__':
     #api_thread = Api()
     #db_thread.start()
     #api_thread.start()
-    _thread.start_new_thread(db, ())
+    #_thread.start_new_thread(db, ())
+    proc = Process(target=db)
+    proc.start()
+    
     app.run()
     #sleep(10)
-    #print(client.execute('SELECT * FROM practice.numbers'))
+    

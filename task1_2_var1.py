@@ -2,10 +2,12 @@ import pyqtgraph as qt
 import pyqtgraph.exporters
 import numpy as np 
 from clickhouse_driver import Client
-from task1_1_var1 import count_of_nums 
-from task1_1_var1 import count_of_iters 
+
 from colors import colors 
 import sys
+
+count_of_nums = 10  # число чисел
+count_of_iters = 10
 
 the_title = "pyqtgraph plot"
 

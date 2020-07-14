@@ -6,7 +6,7 @@ import subprocess
 from subprocess import Popen
 import sys
 import task1_2_var1
-
+from flask import request, jsonify
 
 count_of_nums = 10  # число чисел
 count_of_iters = 10
@@ -44,6 +44,9 @@ def __main__():
 	buf = []                     	# Создание буфферного списка.
 	drop_database(client)		  	# Удаление базы данных, если она существует, во избежание накопления данных при повторном выполнении программы.
 	
+	
+
+
 	table_init(client)			  	# Создание базы данных и таблицы.
 
 	buf.append(1)														# Добавление номера итерации - 1, потому что первая итерация.
@@ -70,7 +73,9 @@ def __main__():
 
 	print(client.execute('SELECT * FROM practice.numbers'))
 	#drop_database(client)
-	task1_2_var1.painting()
+	#task1_2_var1.painting()
+	print(jsonify(client.execute('SELECT * FROM practice.numbers')))
 
 if __name__ == '__main__':
 	__main__()
+	
