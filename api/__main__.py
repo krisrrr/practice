@@ -2,7 +2,10 @@ from time import sleep
 import time
 from datetime import datetime
 from clickhouse_driver import Client
+<<<<<<< HEAD
 from clickhouse_driver import connect
+=======
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
 from random import randint
 import subprocess
 from subprocess import Popen
@@ -14,7 +17,10 @@ import threading
 from threading import Thread
 import _thread
 import json
+<<<<<<< HEAD
 from multiprocessing import Process
+=======
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
 
 
 check = 0       # переменная для контроля доступа к БД  
@@ -22,7 +28,11 @@ check = 0       # переменная для контроля доступа к
 client = Client('localhost')
 
 app = flask.Flask(__name__)
+<<<<<<< HEAD
 #app.config["DEBUG"] = True
+=======
+app.config["DEBUG"] = True
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
 
 values = [0, datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
     randint(1, 10), 
@@ -35,14 +45,21 @@ columns = ['id_iter', 'time_', 'num_1', 'num_2', 'num_3', 'num_4', 'num_5']
 
 
 def table_init(client):
+<<<<<<< HEAD
 	client.execute('DROP TABLE IF EXISTS numbers')
 	client.execute('CREATE TABLE numbers('
+=======
+	client.execute('DROP DATABASE IF EXISTS practice') 
+	client.execute('CREATE DATABASE practice')
+	client.execute('CREATE TABLE practice.numbers('
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
 						'id_iter Int32, time_ String, num_1 Int32, '
 						'num_2 Int32, num_3 Int32, '
 						'num_4 Int32, num_5 Int32)'
 						'ENGINE = MergeTree ORDER BY time_')
 
 
+<<<<<<< HEAD
 def put_to_table(client):
     
     global values
@@ -60,11 +77,24 @@ def put_to_table(client):
     
     #print(query)
     client.execute('INSERT INTO numbers ('+names+') VALUES ('+buf+')')
+=======
+def put_to_table(client, buf, columns):
+    values = str(buf[0]) + """, '""" + str(buf[1]) + """'"""
+    names = 'id_iter'
+    for i in range(1, len(columns)):
+        names += ', ' + columns[i]
+    for i in range(2, len(buf)):
+        values += ', ' + str(buf[i]) 
+    query = 'INSERT INTO practice.numbers ('+names+') VALUES ('+values+')'
+    print(query)
+    client.execute(query)
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
     #k = client.execute('SELECT * FROM practice.numbers')
     #if k: print('Successfully added')
 
 
 def db():
+<<<<<<< HEAD
     #sleep(3)
     print('global client')
     global client
@@ -77,10 +107,22 @@ def db():
     #while True:
     for i in range(10):
         print()
+=======
+    global client
+    global check
+    #global api_flow
+    #global values
+    table_init(client)
+    put_to_table(client, values, columns)
+
+    #while True:
+    for i in range(10):
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
         check = 1   # доступ к бд открыт
         sleep(1)
         #print(time.time())
         check = 0   # доступ к бд закрыт
+<<<<<<< HEAD
         data = client.execute('SELECT * FROM numbers WHERE id_iter = '+str(i))
         print('data = ', data)
         values[0] = data[0][0] + 1
@@ -91,6 +133,27 @@ def db():
         put_to_table(client)
         #print(time.time())
     print(client.execute('SELECT * FROM numbers ORDER BY id_iter'))
+=======
+        data = client.execute('SELECT * FROM practice.numbers WHERE id_iter = '+str(i))
+        values[0] = data[0][0] + 1
+        values[1] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+        for i in range(2, len(values)):
+            values[i] += 3 * data[0][0]
+        put_to_table(client, values, columns)
+        #print(time.time())
+
+
+class Db(Thread):
+        
+    def __init__(self):
+        """Инициализация потока"""
+        Thread.__init__(self)
+        self.name = "DB"
+    
+    def run(self):
+        """Запуск потока"""
+        db()
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
 
 
 @app.route('/', methods=['GET'])
@@ -105,10 +168,17 @@ def home():
 
 
 @app.route('/all', methods=['GET'])
+<<<<<<< HEAD
 def show_entries():
     global client
     global columns
     data = client.execute('SELECT * FROM numbers ORDER BY id_iter')
+=======
+def show_entries(a):
+    global client
+    global columns
+    data = client.execute('SELECT * FROM practice.numbers ORDER BY time_')
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
     print('Необработанные данные из таблицы:', data)
     entries = []
     buf = []
@@ -152,7 +222,11 @@ def show_entries():
 @app.route('/pupka', methods=['GET'])
 def shrek():
     global client
+<<<<<<< HEAD
     data = client.execute('SELECT * FROM numbers ORDER BY time_')
+=======
+    data = client.execute('SELECT * FROM practice.numbers ORDER BY time_')
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
     return str(data)
 
 
@@ -211,8 +285,13 @@ def add_num():
             print(name)
             
             value = query_parameters.get('value')
+<<<<<<< HEAD
             client.execute('ALTER TABLE numbers ADD COLUMN '+ name +' Int32')
             client.execute('UPDATE numbers SET '+ name +' = '+ str(value) +' WHERE id_iter = '+id)
+=======
+            client.execute('ALTER TABLE practice.numbers ADD COLUMN '+ name +' Int32')
+            client.execute('UPDATE practice.numbers SET '+ name +' = '+ str(value) +' WHERE practice.numbers.id_iter = '+id)
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
             values[name] = int(value)
             break
     
@@ -225,6 +304,7 @@ if __name__ == '__main__':
     #api_thread = Api()
     #db_thread.start()
     #api_thread.start()
+<<<<<<< HEAD
     #_thread.start_new_thread(db, ())
     proc = Process(target=db)
     proc.start()
@@ -232,3 +312,9 @@ if __name__ == '__main__':
     app.run()
     #sleep(10)
     
+=======
+    _thread.start_new_thread(db, ())
+    app.run()
+    #sleep(10)
+    #print(client.execute('SELECT * FROM practice.numbers'))
+>>>>>>> 88e73bf8d9552b354088f963178a4ac331850a62
