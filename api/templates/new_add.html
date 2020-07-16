@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block Title %}
+Главная страница
+{% endblock %}
+
+{% block Body %}
+<div class="container mt-5">
+  <h3 class="display-4">Добавление переменной</h3 >
+  <p class="lead">Ниже можно добавить новую переменную</p>
+  <form action="/new-var" method="post">
+    <p>Введите название переменной:</p>
+    <input type="text" name="var" id="var" class="form-control">
+    <p></p>
+    <p>Введите значение:</p>
+    <input type="text" name="val" id="val" class="form-control">
+    <p></p>
+    <input type="submit" class="btn btn-success" value="Добавить">    
+  </form>
+</div>
+{% endblock %}

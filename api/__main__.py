@@ -4,27 +4,18 @@ from datetime import datetime
 from clickhouse_driver import Client
 from random import randint
 import sys
-import paint
 import flask
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, jsonify
 import json
 from multiprocessing import Process
+import mypaint
 
-
-check = 0       # переменная для контроля доступа к БД  
 
 client = Client('localhost')
 
 app = flask.Flask(__name__)
 
-values = [0, datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
-    randint(1, 10), 
-    randint(1, 10), 
-    randint(1, 10),
-    randint(1, 10), 
-    randint(1, 10)]
-
-columns = ['id_iter', 'time_', 'num_1', 'num_2', 'num_3', 'num_4', 'num_5']
+columns = {1: 'id_iter', 2: 'time_', 3: 'num_1', 4: 'num_2', 5: 'num_3', 6: 'num_4', 7: 'num_5'}
 
 
 def table_init(client):
@@ -36,55 +27,45 @@ def table_init(client):
 						'ENGINE = MergeTree ORDER BY time_')
 
 
-def put_to_table(client):
-    
-    global values
+def put_to_table(client, values):
     global columns
-    
+    names_list = client.execute("SELECT name FROM system.columns WHERE type = 'Int32' " )
     buf = str(values[0]) + """, '""" + str(values[1]) + """'"""
-    names = 'id_iter'
-    for i in range(1, len(columns)):
-        names += ', ' + columns[i]
+    names = 'id_iter, time_'
+    for i in range(1, len(names_list) - 8):
+        names += ', ' + names_list[i][0]
     for i in range(2, len(values)):
         buf += ', ' + str(values[i]) 
-    print()
-    print(names)
-    print(buf)
-    
-    #print(query)
-    client.execute('INSERT INTO numbers ('+names+') VALUES ('+buf+')')
-    #k = client.execute('SELECT * FROM practice.numbers')
-    #if k: print('Successfully added')
+    query = 'INSERT INTO numbers ('+names+') VALUES ('+buf+')'
+    client.execute(query)
 
 
 def db():
+    values = [1, datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
+        randint(1, 20), 
+        randint(1, 20), 
+        randint(1, 20),
+        randint(1, 20), 
+        randint(1, 20)]
     global client
-    global check
     table_init(client)
-    put_to_table(client)
-    i = 0
+    put_to_table(client, values)
+    k = 1
     while True:
-        check = 1   # доступ к бд открыт
+        values.clear()
         sleep(1)
-        check = 0   # доступ к бд закрыт
-        data = client.execute('SELECT * FROM numbers WHERE id_iter = '+str(i))
-        values[0] = data[0][0] + 1
-        values[1] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
-        for i in range(2, len(values)):
-            values[i] = data[0][i] + 3 * data[0][0]
-        put_to_table(client)
-        i += 1
-
+        data = client.execute('SELECT * FROM numbers WHERE id_iter = '+str(k))
+        values.append(data[0][0] + 1)
+        values.append(datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
+        for i in range(2, len(data[0])):
+            values.append(data[0][i] + 3 * data[0][0])
+        put_to_table(client, values)
+        k += 1
+        
 
 @app.route('/', methods=['GET'])
 def home():
-    return '''
-            <h1>Добро пожаловать в базу данных</h1>
-            <p>Автоматически была создана таблица стартовых данных</p>
-            <p>Чтобы просмотреть таблицу и график значений, перейдите http://127.0.0.1:5000/all</p>
-            <p>Чтобы добавить новое число, перейдите http://127.0.0.1:5000/form </p>
-            
-           '''
+    return render_template('index.html')
 
 
 @app.route('/all', methods=['GET'])
@@ -92,111 +73,65 @@ def show_entries():
     global client
     global columns
     data = client.execute('SELECT * FROM numbers ORDER BY id_iter')
-    entries = []
-    buf = []
-    for i in range(len(data)):
-        buf.append([])
-        for j in range(len(data[i]) - 2):
-            buf[i].append([])
-            buf[i][j].append(columns[j+2])
-            buf[i][j].append(data[i][j+2])
-        entries.append({})
-        entries[i]['index'] = data[i][0]
-        entries[i]['time'] = data[i][1]
-        entries[i]['nums'] = buf[i]
-    entries = json.dumps(entries)
-    return '''<html>
-                <head>
-                    <title>All</title>
-                    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-                </head>
-                <body>
-                    <div id="app">
-                        <div v-for="data in restData" :key="data.index">
-                            Index:{{data.index}} Time:{{data.time}} <span v-for="num in data.nums" :key="num[1]">{{num[0]}}: {{num[1]}}</span>
-                        </div>
-                    </div>
-
-                    <script>
-                        var app = new Vue({
-                            el: '#app',
-                            data: {
-                                restData: '''+entries+''',
-                            }
-                        })
-                    </script>
-                </body>
-            </html>'''
+    times =  datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+    return render_template(
+        'show_entries.html', 
+        time=times, 
+        names=columns,
+        data=data,
+        iters=len(data),
+        items_count=len(columns) - 2)
     
-
-@app.route('/pupka', methods=['GET'])
-def shrek():
-    global client
-    data = client.execute('SELECT * FROM numbers ORDER BY time_')
-    return str(data)
-
 
 @app.errorhandler(404)
 def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
-@app.route('/form', methods=['GET'])
+@app.route('/', methods=['POST', 'GET'])
 def form():
-    return ''' 
-        <html>
-            <head>
-                <title>Добавить новую переменную</title>
-                <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-            </head>
-            <body>
-                <h1>Добавить новую переменную</h1>
-                <pre>Имя переменной:          Начальное значение:</pre>
-                <div id="app">
-                    <form>
-                        <input type="text" v-model="formInput1">
-                        <input type="text" v-model="formInput2">
-                        <button @click.prevent="sendData(formInput1, formInput2)">Добавить</button>
-                    </form>
-                </div>
 
-                <script>
-                    var app = new Vue({
-                    el: '#app',
-                    data: {
-                            formInput1: "",
-                            formInput2: ""
-                        },
-                    methods: {
-                            sendData(name, value){
-                                fetch(`http://127.0.0.1:5000/add?name=${name}&value=${value}`)
-                                         }
-                                }
-                        })
-                </script>
-            </body>
-        </html>
-        '''
+        return render_template('add.html')
 
 
-@app.route('/add', methods=['POST'])
-def add_num():
+@app.route('/new-var', methods=['POST', 'GET'])
+def new_num():
     global client
-    global check
-    global values
-    while True:
-        if check:
-            query_parameters = request.args
-            name = query_parameters.get('name')
-            print(name)
-            
-            value = query_parameters.get('value')
-            client.execute('ALTER TABLE numbers ADD COLUMN '+ name +' Int32')
-            client.execute('UPDATE numbers SET '+ name +' = '+ str(value) +' WHERE id_iter = '+id)
-            values[name] = int(value)
-            break
-    
-    return '''<h1>Num added!</h1>'''
+    global columns
+    if request.method == 'POST':
+        name = request.form['var']
+        value = request.form['val']
+        print(name, type(name))
+        print(value, type(value))
+        #return str(name)+' '+str(value)
+        columns[len(columns) + 1] = name
+        print(columns)
+        #try:
+        max_id = client.execute('SELECT max(id_iter) FROM numbers ')
+        last_iter = client.execute('SELECT * FROM numbers WHERE id_iter =' + str(max_id[0][0]))
+        last_iter_str = str(last_iter[0][0]) + ', ' + "'" + last_iter[0][1] + "'"
+        for i in range(2, len(last_iter[0])): 
+            last_iter_str += ', '+ str(last_iter[0][i])
+        last_iter_str += ', ' + value
+        names = columns[1]
+        for key in columns:
+            if key > 1:
+                names += ', ' + columns[key]
+        client.execute('ALTER TABLE numbers ADD COLUMN '+ name +' Int32') 
+        query = 'INSERT INTO numbers ('+ names +') VALUES ('+ last_iter_str +')'
+        print(query)
+        client.execute(query)
+        return redirect('/all')
+        #except:
+        #    return "При добавлении произошла ошибка"
+    else:
+        return render_template('new_add.html')
+
+
+@app.route('/graph', method=['GET'])
+def graphic():
+    mypaint.painting()
+    return render_template('index.html')
 
 
 if __name__ == '__main__':

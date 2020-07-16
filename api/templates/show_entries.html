@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block Title %}
+Содержимое
+{% endblock %}
+
+{% block Body %}
+<div>
+    <h3 id="headline">Cодержимое базы данных на момент времени {{ time }}</h3>
+    <hr>
+    <table border="1"> 
+        <thead>
+            <tr>
+                {#% set names = {{ names }} %#}
+                {% for key in names %}
+                    <th>&#160;{{ names[key] }}&#160;</th>
+                {% endfor %}
+            </tr>  
+        </thead>
+        <tbody>
+            {#% set data = {{ data }} %#}
+            {% for line in data %}
+                <tr>
+                    {% for item in line %}
+                        <td>&#160;{{ item }}&#160;</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p>Всего {{ iters }} итераций для {{ items_count }} переменных</p>>
+    <p><a href="#headline">Наверх</a></p>
+</div>
+{% endblock %}

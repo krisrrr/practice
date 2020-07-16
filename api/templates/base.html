@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="shortcut icon" href="/static/icon.png">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+        <title>{% block Title %}{% endblock %}</title>
+    </head>
+    <body>
+        <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+            <h5 class="my-0 mr-md-auto font-weight-normal">База данных</h5>
+            <nav class="my-2 my-md-0 mr-md-3">
+              <a class="p-2 text-dark" href="http://127.0.0.1:5000/">Главная</a>
+              <a class="p-2 text-dark" href="http://127.0.0.1:5000/all">Посмотреть содержимое</a>
+              <a class="p-2 text-dark" href="http://127.0.0.1:5000/new-var">Добавить переменную</a>
+              <a class="p-2 text-dark" href="http://127.0.0.1:5000/graph">Построить график</a>
+            </nav>
+            <a class="btn btn-outline-primary" href="http://127.0.0.1:5000/auth">Войти в систему</a>
+        </div>
+        <div class="container">
+          {% block Body %}{% endblock %}
+        </div>
+          <footer class="container pt-4 my-md-5 pt-md-5 border-top">
+            <div class="row">
+              <div class="col-12 col-md">
+                <img class="mb-2" src="/static/icon.png" alt="" width="24" height="24">
+                <small class="d-block mb-3 text-muted">© 2020</small>
+              </div>
+              <div class="col-6 col-md">
+                <ul class="list-unstyled text-small">
+                  <li><a class="text-muted" href="http://127.0.0.1:5000/">Главная</a></li>
+                  <li><a class="text-muted" href="http://127.0.0.1:5000/all">Посмотреть содержимое</a></li>
+                </ul>
+              </div>
+              <div class="col-6 col-md">
+                <ul class="list-unstyled text-small">
+                  <li><a class="text-muted" href="http://127.0.0.1:5000/add/">Добавить переменную</a></li>
+                  <li><a class="text-muted" href="http://127.0.0.1:5000/graph">Построить график</a></li>li>
+                </ul>
+              </div>
+              <div class="col-6 col-md">
+                <ul class="list-unstyled text-small">
+                  <li><a class="text-muted" href="http://127.0.0.1:5000/auth">Войти в систему</a></li>
+                </ul>
+              </div>
+            </div>
+          </footer>
+    </body>
+</html>
