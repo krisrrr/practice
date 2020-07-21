@@ -9,6 +9,7 @@ from flask import Flask, request, session, g, redirect, url_for, abort, render_t
 import json
 from multiprocessing import Process
 import mypaint
+from time_of_query import get_time
 
 
 client = Client('localhost')
@@ -88,12 +89,6 @@ def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
-@app.route('/', methods=['POST', 'GET'])
-def form():
-
-        return render_template('add.html')
-
-
 @app.route('/new-var', methods=['POST', 'GET'])
 def new_num():
     global client
@@ -101,12 +96,8 @@ def new_num():
     if request.method == 'POST':
         name = request.form['var']
         value = request.form['val']
-        print(name, type(name))
-        print(value, type(value))
-        #return str(name)+' '+str(value)
         columns[len(columns) + 1] = name
-        print(columns)
-        #try:
+
         max_id = client.execute('SELECT max(id_iter) FROM numbers ')
         last_iter = client.execute('SELECT * FROM numbers WHERE id_iter =' + str(max_id[0][0]))
         last_iter_str = str(last_iter[0][0]) + ', ' + "'" + last_iter[0][1] + "'"
@@ -119,23 +110,34 @@ def new_num():
                 names += ', ' + columns[key]
         client.execute('ALTER TABLE numbers ADD COLUMN '+ name +' Int32') 
         query = 'INSERT INTO numbers ('+ names +') VALUES ('+ last_iter_str +')'
-        print(query)
         client.execute(query)
         return redirect('/all')
-        #except:
-        #    return "При добавлении произошла ошибка"
     else:
         return render_template('new_add.html')
 
 
-@app.route('/graph', method=['GET'])
+@app.route('/graph', methods=['GET'])
 def graphic():
     mypaint.painting()
     return render_template('index.html')
+
+
+@app.route('/time-of-query', methods=['POST', 'GET'])
+def get_time_of_query():
+    global client
+    if request.method == 'POST':
+        input_names = request.form['names']
+        names = [i for i in input_names.split()]
+        time_of_query = get_time(names, client)
+        return render_template(
+            'time.html', 
+            names=input_names,
+            time=time_of_query)
+    else:
+        return render_template('get_time.html')
 
 
 if __name__ == '__main__':
     proc = Process(target=db)
     proc.start()
     app.run()
-    

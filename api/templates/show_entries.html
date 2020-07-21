@@ -11,14 +11,12 @@
     <table border="1"> 
         <thead>
             <tr>
-                {#% set names = {{ names }} %#}
                 {% for key in names %}
                     <th>&#160;{{ names[key] }}&#160;</th>
                 {% endfor %}
             </tr>  
         </thead>
         <tbody>
-            {#% set data = {{ data }} %#}
             {% for line in data %}
                 <tr>
                     {% for item in line %}

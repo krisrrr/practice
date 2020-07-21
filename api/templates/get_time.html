@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block Title %}
+Получение времени обработки запроса
+{% endblock %}
+
+{% block Body %}
+  <h3 class="display-4">Время обработки запроса</h3 >
+  <p class="lead">Ниже можно узнать время обработки запроса указанных переменных</p>
+  <form action="/time-of-query" method="post">
+    <p>Введите названия переменных через пробел:</p>
+    <input type="text" name="names" id="input_names" class="form-control">
+    <p></p>
+    <input type="submit" class="btn btn-success" value="Получить">    
+  </form>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block Title %}
+Время обработки запроса
+{% endblock %}
+
+{% block Body %}
+  <h3 class="display-4">Время обработки запроса</h3 >
+  <p class="lead">Время обработки запроса на получение данных переменных {{ names }} составляет {{ time }} с.</p>
+{% endblock %}

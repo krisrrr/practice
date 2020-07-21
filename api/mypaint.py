@@ -14,9 +14,7 @@ the_title = "pyqtgraph plot"
 def get_data_one(id_, client):
 	buf = []
 	low_buf = client.execute('SELECT num_%s FROM practice.numbers'%id_)
-	#print(low_buf)
 	for item in low_buf:
-		print(item, end=' ')
 		buf.append(item[0])
 	return buf
 
